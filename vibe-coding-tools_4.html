@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Coding Tools 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111113;
+    --border: #1e1e22;
+    --border-light: #2a2a30;
+    --text: #e8e8ec;
+    --text-dim: #6b6b78;
+    --text-mid: #a0a0b0;
+    --c-found: #6ac8f7;
+    --c-builder: #f76a9a;
+    --c-agent-cloud: #f7a26a;
+    --c-agent-local: #c46af7;
+    --c-orch: #34d399;
+    --c-dev: #7c6af7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    padding: 48px 24px 96px;
+  }
+
+  .noise {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.15em; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+
+  h1 { font-size: clamp(28px, 4.5vw, 52px); font-weight: 700; line-height: 1.06; letter-spacing: -0.03em; margin-bottom: 16px; }
+  h1 .hl { background: linear-gradient(90deg,#7c6af7,#6ac8f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 10px; }
+
+  p { font-size: 13.5px; line-height: 1.75; color: var(--text-mid); }
+  p + p { margin-top: 10px; }
+  p strong { color: var(--text); font-weight: 600; }
+
+  header { margin-bottom: 56px; border-bottom: 1px solid var(--border); padding-bottom: 40px; }
+  .subtitle { font-size: 15px; line-height: 1.7; color: var(--text-mid); max-width: 640px; margin-bottom: 24px; }
+  .meta-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .meta-tag { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); background: var(--surface); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; }
+
+  /* EXPLAINER */
+  .explainer { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 30px 32px; margin-bottom: 56px; }
+  .explainer .eyebrow { margin-bottom: 12px; }
+  .explainer h2 { margin-bottom: 14px; }
+
+  .callout { margin-top: 18px; padding: 14px 16px; background: rgba(124,106,247,0.06); border: 1px solid rgba(124,106,247,0.2); border-radius: 8px; font-size: 13px; line-height: 1.7; color: var(--text-mid); }
+  .callout strong { color: #b0a6f8; }
+
+  /* FRAMEWORK */
+  .fw-wrap { margin-top: 24px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .fw-axis-label { font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 10px 18px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); }
+  .fw-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); }
+  .fw-cell { background: var(--surface); padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .fw-step { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.5; }
+  .fw-title { font-size: 13px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.3; }
+  .fw-who { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+  .fw-tools { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .fw-tool-name { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); }
+  .fw-divider { background: var(--surface); padding: 10px 18px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+  .fw-dev-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+
+  /* SECTION */
+  .section-wrap { margin-bottom: 64px; }
+  .section-head { margin-bottom: 24px; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 8px; }
+  .section-intro { font-size: 13.5px; line-height: 1.75; color: var(--text-mid); max-width: 760px; margin-bottom: 10px; }
+  .section-intro strong { color: var(--text); font-weight: 600; }
+  .section-callout { margin-top: 14px; padding: 14px 16px; border-radius: 8px; font-size: 13px; line-height: 1.7; color: var(--text-mid); border: 1px solid var(--border-light); background: rgba(255,255,255,0.02); max-width: 760px; }
+  .section-callout strong { color: var(--text); font-weight: 600; }
+  .section-callout + .section-callout { margin-top: 10px; }
+
+  /* SUBSECTION */
+  .subsection { margin-top: 32px; }
+  .subsection-label { font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .subsection-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .sub-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  /* CARDS */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(315px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.15s; }
+  .card:hover { border-color: var(--border-light); transform: translateY(-2px); }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--ca, #7c6af7); opacity: 0.85; }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+  .card-logo { width: 38px; height: 38px; border-radius: 9px; background: var(--ca, #7c6af7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #000; flex-shrink: 0; }
+  .card-badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+  .badge { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-light); color: var(--text-dim); }
+  .badge.hot  { border-color:#f76a9a; color:#f76a9a; }
+  .badge.new  { border-color:#6af7b8; color:#6af7b8; }
+  .badge.dev  { border-color:#6ac8f7; color:#6ac8f7; }
+  .badge.warn { border-color:#f7e26a; color:#f7e26a; }
+  .badge.oss  { border-color:#34d399; color:#34d399; }
+  .badge.pur  { border-color:#c46af7; color:#c46af7; }
+  .card-name { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+  .card-domain { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 10px; }
+  .card-tagline { font-size: 12.5px; font-weight: 600; color: var(--text); margin-bottom: 10px; line-height: 1.45; padding: 8px 10px; background: rgba(255,255,255,0.03); border-left: 2px solid var(--ca, #7c6af7); border-radius: 0 4px 4px 0; }
+  .card-desc { font-size: 13px; line-height: 1.65; color: var(--text-mid); margin-bottom: 12px; }
+  .use-cases { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .use-case { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--text-mid); line-height: 1.4; }
+  .use-case::before { content: '→'; color: var(--ca, #7c6af7); font-size: 10px; flex-shrink: 0; margin-top: 2px; }
+  .card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 13px; border-top: 1px solid var(--border); }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
+  .stat-val { font-size: 12.5px; font-weight: 600; color: var(--text); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  th { padding: 12px 14px; text-align: left; font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-mid); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+  .tool-cell { display: flex; align-items: center; gap: 8px; }
+  .tool-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .tool-name-t { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .cat-pill { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 3px; border: 1px solid; white-space: nowrap; }
+  .yes  { color: #6af7b8; }
+  .no   { color: #2e2e36; }
+  .part { color: #f7e26a; }
+  .mono { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-mid); }
+
+  /* VERDICT */
+  .verdict-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(256px,1fr)); gap: 11px; }
+  .verdict-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start; }
+  .verdict-emoji { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .verdict-title { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .verdict-body { font-size: 12px; color: var(--text-dim); line-height: 1.55; }
+  .verdict-body strong { color: var(--text-mid); font-weight: 600; }
+
+  footer { margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .footer-note { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); }
+
+  @media (max-width: 820px) { .fw-grid { grid-template-columns: repeat(3,1fr); } .fw-dev-row { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .fw-grid { grid-template-columns: repeat(2,1fr); } .cards-grid, .verdict-grid { grid-template-columns: 1fr; } .explainer { padding: 22px 20px; } }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header>
+  <div class="eyebrow">// Vibe Coding Landscape · March 2026</div>
+  <h1>目前最主流的<br><span class="hl">Vibe Coding 工具全覽</span></h1>
+  <p class="subtitle">用自然語言寫軟體，從炒作詞彙到開發現場的新常態。但「Vibe Coding 工具」這個詞，被用來描述本質差異極大的十幾種東西。這份文件試圖說清楚它們真正的差別——讓你拿對工具。</p>
+  <div class="meta-row">
+    <span class="meta-tag">coined by Andrej Karpathy · Feb 2025</span>
+    <span class="meta-tag">Collins Word of the Year 2025</span>
+    <span class="meta-tag">$15B+ global AI dev spend</span>
+    <span class="meta-tag">YC W25: 25% 新創 codebase 95% AI 生成</span>
+    <span class="meta-tag">OpenClaw 150K+ GitHub ⭐ in weeks</span>
+  </div>
+</header>
+
+<!-- ══════════════ EXPLAINER 1 ══════════════ -->
+<div class="explainer">
+  <div class="eyebrow">// 01 · 先搞懂這件事</div>
+  <h2>Vibe Coding 是什麼？</h2>
+  <p><strong>Vibe Coding</strong> 由 AI 研究員 Andrej Karpathy 在 2025 年 2 月提出，原意是：「完全信任 AI，用自然語言描述你要的東西，讓 AI 寫 code，你自己不需要讀或維護那些程式碼。」他把它比喻成「完全沉浸在氛圍裡開發，忘記 code 本身的存在」。</p>
+  <p>這個概念之所以引發共鳴，是因為它說出了一個真實的現象：越來越多人——包含完全沒有工程背景的創辦人、PM、設計師——開始用 AI 工具把想法直接變成可運行的軟體，速度快到讓傳統開發流程相形見絀。YC 2025 冬季班有 25% 的新創，其 codebase 超過 95% 由 AI 生成。</p>
+  <div class="callout">
+    ⚠️ <strong>但「Vibe Coding 工具」這個詞被嚴重濫用了。</strong>它被同時用來描述：在對話框請 ChatGPT 寫一段 code、用 Lovable 一鍵出 MVP、用 Cursor 加速日常開發、用 Manus 讓 AI 自己上網完成任務、用 OpenClaw 在手機上傳訊息指揮電腦……這幾件事的本質差異極大，受眾不同、技術門檻不同、能做到的事也完全不同。不搞清楚邊界，很容易拿錯工具，或對工具有不切實際的期待。
+  </div>
+</div>
+
+<!-- ══════════════ EXPLAINER 2: FRAMEWORK ══════════════ -->
+<div class="explainer">
+  <div class="eyebrow">// 02 · 我們怎麼分類</div>
+  <h2>分類框架：兩個軸</h2>
+  <p>這份文件用 <strong>兩個軸</strong> 來整理所有工具，而不是把它們丟進同一個清單裡。</p>
+  <p><strong>主軸：AI 的自主程度有多高？</strong>從「你問它答，每步都需要你在場」，一路到「你說目標，它自己在後台把事情搞定，完成才回報你」。這個維度決定了你需要投入多少時間和注意力，也決定了工具的複雜度和風險程度。</p>
+  <p><strong>副軸：你需要多少技術背景？</strong>主線工具（Foundation Models → App Builders → Autonomous Agents → 編排框架）基本上不需要你懂程式。Dev Tools 這條線則完全不同——它是給本來就在寫 code 的工程師用的加速器，和主線受眾根本不同，所以獨立出來。</p>
+  <div class="callout">
+    💡 <strong>多情境通用的工具確實存在。</strong>Claude 同時出現在 Foundation Models（對話框請它寫 code）和 Dev Tools（Claude Code 整合進你的 terminal 和 IDE）。ChatGPT 也是。這不是重複，而是同一個底層能力在不同使用方式下扮演不同角色——理解這件事，才能真正用好這些工具。
+  </div>
+
+  <div class="fw-wrap">
+    <div class="fw-axis-label">主軸 → AI 自主程度遞增（你需要的介入越來越少）</div>
+    <div class="fw-grid">
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-found)">Foundation</div>
+        <div class="fw-title" style="color:var(--c-found)">純生成</div>
+        <div class="fw-who">你問，它生成文字和 code。沒有執行環境，你還要自己跑。</div>
+        <div class="fw-tools">
+          <span class="fw-tool-name">ChatGPT</span>
+          <span class="fw-tool-name">Claude</span>
+          <span class="fw-tool-name">Gemini</span>
+        </div>
+      </div>
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-builder)">App Builders</div>
+        <div class="fw-title" style="color:var(--c-builder)">建好並部署</div>
+        <div class="fw-who">你說需求，它生成 + 部署，給你一個可以打開的 URL。</div>
+        <div class="fw-tools">
+          <span class="fw-tool-name">Lovable</span>
+          <span class="fw-tool-name">v0</span>
+          <span class="fw-tool-name">Base44</span>
+          <span class="fw-tool-name">Replit</span>
+        </div>
+      </div>
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-agent-cloud)">Agent · 雲端</div>
+        <div class="fw-title" style="color:var(--c-agent-cloud)">自主執行（雲）</div>
+        <div class="fw-who">你說目標，廠商的雲端電腦幫你操作、完成後回報。</div>
+        <div class="fw-tools">
+          <span class="fw-tool-name">Manus（雲端）</span>
+        </div>
+      </div>
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-agent-local)">Agent · 本機</div>
+        <div class="fw-title" style="color:var(--c-agent-local)">自主執行（本機）</div>
+        <div class="fw-who">你說目標，你自己的電腦去執行。資料完全在本機。</div>
+        <div class="fw-tools">
+          <span class="fw-tool-name">Manus（本機）</span>
+          <span class="fw-tool-name">OpenClaw</span>
+        </div>
+      </div>
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-orch)">Orchestration</div>
+        <div class="fw-title" style="color:var(--c-orch)">多 Agent 編排</div>
+        <div class="fw-who">你設定目標和治理規則，多個 Agent 分工協作完成任務。</div>
+        <div class="fw-tools">
+          <span class="fw-tool-name">Paperclip</span>
+        </div>
+      </div>
+    </div>
+    <div class="fw-divider">副軸 → 需要程式背景（Dev Tools · 加速器，不是替代品）</div>
+    <div class="fw-dev-row">
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-dev)">Dev Tools</div>
+        <div class="fw-title" style="color:var(--c-dev)">Cursor</div>
+        <div class="fw-who">你在寫 code，AI 幫你讀懂整個 repo、做重構</div>
+      </div>
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-dev)">Dev Tools</div>
+        <div class="fw-title" style="color:var(--c-dev)">Claude Code</div>
+        <div class="fw-who">Terminal / IDE 深度整合，最像資深工程師搭檔</div>
+      </div>
+      <div class="fw-cell">
+        <div class="fw-step" style="color:var(--c-dev)">Dev Tools</div>
+        <div class="fw-title" style="color:var(--c-dev)">ChatGPT / Codex</div>
+        <div class="fw-who">最通用的 coding agent，Canvas + 多代理工作流</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FOUNDATION MODELS ══════════════ -->
+<section class="section-wrap">
+  <div class="section-head">
+    <div class="section-label"><span class="cat-dot" style="background:var(--c-found)"></span>Foundation Models</div>
+    <div class="section-title" style="color:var(--c-found)">純生成工具——整個生態的底層引擎</div>
+    <p class="section-intro">這一層是整個 Vibe Coding 生態的根基。ChatGPT、Claude、Gemini 在對話框裡可以幫你寫 code、解釋邏輯、Debug、拆解需求——但它們本身<strong>沒有執行環境</strong>。你拿到的是文字和 code 片段，要在哪裡跑、怎麼部署，仍然是你的責任。</p>
+    <p class="section-intro">這不代表它們「比較弱」。幾乎所有上面介紹的工具——Lovable、Cursor、Replit、Manus——都建在這些模型之上。<strong>理解它們的能力和限制，才能真正理解整個生態的邊界在哪裡。</strong></p>
+    <div class="section-callout">
+      💡 這一層也是<strong>最容易上手的 Vibe Coding 入口</strong>。很多人的第一次體驗，就是在 ChatGPT 或 Claude 的對話框裡貼一段需求，然後把生成的 code 貼到別的地方跑。這完全合理——只是要清楚它的限制在哪裡，以及什麼時候該升級到下一層工具。
+    </div>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card" style="--ca:var(--c-found);">
+      <div class="card-top">
+        <div class="card-logo" style="background:var(--c-found);">GP</div>
+        <div class="card-badges"><span class="badge hot">最多人用</span><span class="badge">OpenAI</span></div>
+      </div>
+      <div class="card-name">ChatGPT</div>
+      <div class="card-domain">chatgpt.com</div>
+      <div class="card-tagline">最多人的 Vibe Coding 入口，也是整個生態最熟悉的 AI 大腦</div>
+      <div class="card-desc">全球用戶最多的 AI 對話工具，也是很多人第一次接觸 Vibe Coding 的地方。Canvas 模式讓你在對話中直接看到和修改 code；Projects 功能可以維持跨對話的上下文。對一般用戶來說，它適合需求拆解、Debug、生成元件、快速驗證想法。作為底層模型，它也驅動著非常多第三方工具。</div>
+      <div class="use-cases">
+        <span class="use-case">需求拆解、功能設計、技術選型討論</span>
+        <span class="use-case">生成 code 片段、解釋邏輯、Debug</span>
+        <span class="use-case">Canvas 對話式修改、快速原型構思</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">月活用戶</div><div class="stat-val">3 億+</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $20/mo</div></div>
+        <div><div class="stat-label">執行環境</div><div class="stat-val">無（純生成）</div></div>
+        <div><div class="stat-label">多情境</div><div class="stat-val">✓ 另見 Codex</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="--ca:#f7a26a;">
+      <div class="card-top">
+        <div class="card-logo" style="background:#f7a26a;">Cl</div>
+        <div class="card-badges"><span class="badge dev">Anthropic</span><span class="badge">長上下文</span></div>
+      </div>
+      <div class="card-name">Claude</div>
+      <div class="card-domain">claude.ai · anthropic.com</div>
+      <div class="card-tagline">寫長程式、讀大型 codebase、理解複雜規格最強的 AI 搭檔</div>
+      <div class="card-desc">在開發者族群中口碑極高——特別是需要處理大型 codebase、長規格文件、複雜重構任務時，Claude 被很多工程師視為首選。對話框的 Claude 適合需求理解、code review、架構討論。Claude Code 則把這個能力延伸到 terminal 和 IDE，進入 Dev Tools 的領域。兩者底層是同一個模型，但使用方式和深度截然不同。</div>
+      <div class="use-cases">
+        <span class="use-case">複雜規格理解、架構設計討論</span>
+        <span class="use-case">長程式生成、code review、技術文檔</span>
+        <span class="use-case">大型文件分析、需求拆解</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">強項</div><div class="stat-val">長上下文理解</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $20/mo</div></div>
+        <div><div class="stat-label">執行環境</div><div class="stat-val">無（純生成）</div></div>
+        <div><div class="stat-label">多情境</div><div class="stat-val">✓ 另見 Claude Code</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="--ca:#4285f4;">
+      <div class="card-top">
+        <div class="card-logo" style="background:#4285f4;">Ge</div>
+        <div class="card-badges"><span class="badge dev">Google</span><span class="badge">1M Token</span></div>
+      </div>
+      <div class="card-name">Gemini / Canvas</div>
+      <div class="card-domain">gemini.google</div>
+      <div class="card-tagline">Research、長文件理解、原型生成合一的 Google 系工作台</div>
+      <div class="card-desc">Gemini 最強項是超長上下文——支援 100 萬 token，適合大型文件分析、長規格、大型 codebase 理解。Gemini Canvas 讓你把 prompt 或 Deep Research 的結果直接轉成互動 app、遊戲、資訊圖（在 Canvas 環境中預覽，但沒有完整部署管道）。比起其他 Foundation Models，更偏向「研究 + 產出 + 原型」一體化的工具。</div>
+      <div class="use-cases">
+        <span class="use-case">超長文件 / 規格 / codebase 分析</span>
+        <span class="use-case">Deep Research 結果直接轉互動原型</span>
+        <span class="use-case">App、互動頁面、資訊圖快速成型</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">上下文</div><div class="stat-val">1M Token</div></div>
+        <div><div class="stat-label">特色</div><div class="stat-val">Canvas 原型預覽</div></div>
+        <div><div class="stat-label">執行環境</div><div class="stat-val">Canvas 預覽限定</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / Gemini Adv.</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ APP BUILDERS ══════════════ -->
+<section class="section-wrap">
+  <div class="section-head">
+    <div class="section-label"><span class="cat-dot" style="background:var(--c-builder)"></span>App Builders</div>
+    <div class="section-title" style="color:var(--c-builder)">你說，它建好並部署</div>
+    <p class="section-intro">和 Foundation Models 的根本差別是：<strong>這一層有雲端執行環境和部署管道</strong>。你不只是拿到一段 code，而是拿到一個真實可訪問的 URL——後端、資料庫、Auth、Hosting，平台幫你全部搞定。這是非技術背景創辦人和 PM 的真正起點。</p>
+    <div class="section-callout">
+      ⚠️ <strong>「Agent Mode」的命名陷阱。</strong>Lovable 有 Agent Mode，Replit 有 Agent——這讓很多人以為它們和下一層的 Autonomous Agents 是同一件事。它們不是。App Builder 裡的「Agent」指的是「AI 自主規劃和生成 code 的流程」。它沒辦法自己去上網查資料、寄信、操作你的電腦。真正的 Autonomous Agent 有自己可以操作的真實電腦環境，這是本質差別。
+    </div>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card" style="--ca:var(--c-builder);">
+      <div class="card-top">
+        <div class="card-logo" style="background:var(--c-builder);">Lo</div>
+        <div class="card-badges"><span class="badge hot">🔥 代表工具</span></div>
+      </div>
+      <div class="card-name">Lovable</div>
+      <div class="card-domain">lovable.dev</div>
+      <div class="card-tagline">最會幫你快速生出 MVP 的 AI PM + 前後端外包團隊</div>
+      <div class="card-desc">目前 Vibe Coding 代表性最強的 App Builder。用自然語言直接生成前端、後端與資料庫結構，不是只幫你補 code，而是直接把產品做出來。有 Agent Mode（自主規劃整個 codebase）和 Chat Mode（推理後執行），UI 最漂亮、初學者最友善。日建項目量超過 20 萬，$100M ARR 只花了 8 個月。</div>
+      <div class="use-cases">
+        <span class="use-case">非技術創辦人驗證 MVP 的最快路徑</span>
+        <span class="use-case">React + Supabase 全棧應用一條龍</span>
+        <span class="use-case">設計導向的產品原型展示</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">ARR 成長</div><div class="stat-val">$100M · 8 個月</div></div>
+        <div><div class="stat-label">日建項目</div><div class="stat-val">> 20 萬</div></div>
+        <div><div class="stat-label">原型速度</div><div class="stat-val">≈ 35 分鐘</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $25/mo</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="--ca:#6ac8f7;">
+      <div class="card-top">
+        <div class="card-logo" style="background:#6ac8f7;">v0</div>
+        <div class="card-badges"><span class="badge dev">Vercel 出品</span></div>
+      </div>
+      <div class="card-name">v0</div>
+      <div class="card-domain">v0.dev</div>
+      <div class="card-tagline">最懂現代 Web UI / 前端語感的生成器</div>
+      <div class="card-desc">Vercel 推出，以 Generative UI 爆紅——三週等待名單突破 10 萬人。從純前端工具進化成能建立 full-stack web app 的平台。前端品味、元件結構、現代 web stack 貼合度極高。部署直接推 Vercel，產出的 code 品質在同類工具中評分最高。</div>
+      <div class="use-cases">
+        <span class="use-case">高品質 React / Next.js UI 元件生成</span>
+        <span class="use-case">Landing page、SaaS 後台快速成型</span>
+        <span class="use-case">設計稿轉 shadcn/ui + Tailwind code</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">等待名單</div><div class="stat-val">10 萬 · 3 週</div></div>
+        <div><div class="stat-label">Code 品質</div><div class="stat-val">同類最高</div></div>
+        <div><div class="stat-label">部署</div><div class="stat-val">Vercel 一鍵</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $20/mo</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="--ca:#6af7b8;">
+      <div class="card-top">
+        <div class="card-logo" style="background:#6af7b8; color:#000;">B44</div>
+        <div class="card-badges"><span class="badge new">Wix 旗下</span><span class="badge warn">⚠️ 安全注意</span></div>
+      </div>
+      <div class="card-name">Base44</div>
+      <div class="card-domain">base44.com</div>
+      <div class="card-tagline">把內部工具、營運系統、資料與權限直接包成一套的 AI app builder</div>
+      <div class="card-desc">Wix 收購，主打「你只要講需求，app 結構、認證、資料儲存、角色權限、hosting 都自動生出來」，瞄準內部工具、營運系統、流程自動化。像是「no-code + BaaS + AI agent builder 揉成一個平台」。測試中唯一能 zero-shot 完整 eCommerce 的工具。⚠️ 2025 年曾揭露安全漏洞，企業導入前需評估風險。</div>
+      <div class="use-cases">
+        <span class="use-case">內部工具、後台管理系統快速搭建</span>
+        <span class="use-case">需要完整後端邏輯的 MVP 驗證</span>
+        <span class="use-case">Zapier 串接自動化工作流</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">Benchmark</div><div class="stat-val">Zero-shot 最完整</div></div>
+        <div><div class="stat-label">整合</div><div class="stat-val">Zapier 支援</div></div>
+        <div><div class="stat-label">安全</div><div class="stat-val">中低風險場景佳</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $20/mo</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="--ca:#c46af7;">
+      <div class="card-top">
+        <div class="card-logo" style="background:#c46af7;">Re</div>
+        <div class="card-badges"><span class="badge hot">$10M→$100M · 9mo</span></div>
+      </div>
+      <div class="card-name">Replit</div>
+      <div class="card-domain">replit.com</div>
+      <div class="card-tagline">從寫到跑到部署都包起來的 AI 雲端工作台</div>
+      <div class="card-desc">最早把「線上寫程式」做成產品化體驗的大平台，現在把 AI App Builder、部署、協作與雲端開發整合為一。自然語言生成、即時修改、多人協作、一鍵發佈，一路到上線。支援 50+ 程式語言，社群資源最豐富。⚠️ 平台鎖定程度高，資料庫和 auth 都綁在 Replit 環境，遷出需重建 infra。</div>
+      <div class="use-cases">
+        <span class="use-case">初學者 / 學生學程式的最佳完整環境</span>
+        <span class="use-case">需要多語言支援的全棧專案</span>
+        <span class="use-case">一站式：開發 → 協作 → 部署</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">ARR 成長</div><div class="stat-val">$10M→$100M · 9mo</div></div>
+        <div><div class="stat-label">語言支援</div><div class="stat-val">50+ 語言</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $25/mo</div></div>
+        <div><div class="stat-label">限制</div><div class="stat-val">平台鎖定高</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ AUTONOMOUS AGENTS ══════════════ -->
+<section class="section-wrap">
+  <div class="section-head">
+    <div class="section-label"><span class="cat-dot" style="background:var(--c-agent-cloud)"></span>Autonomous Agents</div>
+    <div class="section-title" style="color:var(--c-agent-cloud)">它自己操作電腦完成任務</div>
+
+    <p class="section-intro">這一層是 Vibe Coding 概念的自然延伸，也是目前發展最快、爭議最多的領域。在進入工具介紹之前，有幾個概念需要先說清楚。</p>
+
+    <div class="section-callout">
+      <strong>什麼是真正的 Agent？和「一般 AI 對話」差在哪？</strong><br><br>
+      一般的 AI 對話模式是：你問 → AI 回答 → 你看完決定下一步 → 你再問。每一步都需要你在場，你是執行者，AI 是建議者。<br><br>
+      Agent 的模式是：你說目標 → AI 自己拆解需要哪些步驟 → 自己執行每一步 → 遇到問題自己想辦法 → 全部完成後才回報你。AI 變成執行者，你變成下指令的人。<br><br>
+      <strong>關鍵在於：真正的 Agent 有自己可以操作的真實電腦環境</strong>——真實的瀏覽器、terminal、檔案系統。它可以自己上網查資料、寫程式然後執行、寄信、填表單，你不在場它也在跑。這和 App Builder 裡「自動規劃生成 code 的 Agent Mode」是根本不同的東西。
+    </div>
+
+    <div class="section-callout" style="margin-top:12px;">
+      <strong>雲端 Agent vs 本機 Agent：這不只是技術細節，而是資料主權的選擇。</strong><br><br>
+      <strong>雲端 Agent</strong>（如 Manus 網頁版）在廠商的伺服器上執行任務。不需要任何設定，開即用，但你的資料、任務內容、執行過程都在廠商的基礎設施上。<br><br>
+      <strong>本機 Agent</strong>（如 Manus 本機版、OpenClaw）在你自己的電腦上執行。資料完全在你手上，不經過任何第三方伺服器，但你需要自己安裝設定，技術門檻明顯更高，安全風險也需要你自己負責管理。<br><br>
+      選哪個，取決於你對資料隱私和安全的要求，以及你願意投入多少設定成本。
+    </div>
+  </div>
+
+  <!-- Cloud Agent -->
+  <div class="subsection">
+    <div class="subsection-label"><span class="sub-dot" style="background:var(--c-agent-cloud)"></span>雲端 Agent — 廠商的電腦幫你執行，開即用</div>
+    <div class="cards-grid">
+      <div class="card" style="--ca:var(--c-agent-cloud);">
+        <div class="card-top">
+          <div class="card-logo" style="background:var(--c-agent-cloud);">Ma</div>
+          <div class="card-badges"><span class="badge pur">全自主 Agent</span><span class="badge">Butterfly Effect</span></div>
+        </div>
+        <div class="card-name">Manus（雲端）</div>
+        <div class="card-domain">manus.im</div>
+        <div class="card-tagline">你說目標，它自己在雲端電腦上把事情搞定</div>
+        <div class="card-desc">Butterfly Effect 2025 年 3 月推出，目前最具代表性的通用雲端 Autonomous Agent。你告訴它「研究這個市場並出一份報告」或「做一個可玩的小遊戲」，它自主瀏覽網頁、整理資料、寫程式、在雲端電腦執行，完成後把成果交給你。整個過程你可以旁觀，也可以中途介入。在 GAIA 基準測試中超越 OpenAI 模型。⚠️ Credits 費用不穩定，複雜任務可能快速燒光。</div>
+        <div class="use-cases">
+          <span class="use-case">市場研究、競品分析、資料整理自動化</span>
+          <span class="use-case">複雜多步驟任務：研究 → 分析 → 輸出成品</span>
+          <span class="use-case">快速建出可玩的小遊戲或工具頁面</span>
+        </div>
+        <div class="card-stats">
+          <div><div class="stat-label">執行環境</div><div class="stat-val">廠商雲端</div></div>
+          <div><div class="stat-label">資料主權</div><div class="stat-val">廠商伺服器</div></div>
+          <div><div class="stat-label">Benchmark</div><div class="stat-val">GAIA 超越 GPT-4</div></div>
+          <div><div class="stat-label">定價</div><div class="stat-val">Free / $39/mo+</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Local Agent -->
+  <div class="subsection">
+    <div class="subsection-label"><span class="sub-dot" style="background:var(--c-agent-local)"></span>本機 Agent — 你的電腦執行，資料不離開本機</div>
+    <div class="cards-grid">
+
+      <div class="card" style="--ca:var(--c-agent-local);">
+        <div class="card-top">
+          <div class="card-logo" style="background:var(--c-agent-local);">ML</div>
+          <div class="card-badges"><span class="badge pur">本機執行</span><span class="badge warn">設定門檻高</span></div>
+        </div>
+        <div class="card-name">Manus（本機版）</div>
+        <div class="card-domain">manus.im</div>
+        <div class="card-tagline">同樣的 Manus 能力，但任務在你的機器上執行</div>
+        <div class="card-desc">Manus 提供本機部署選項，核心 Agent 能力與雲端版相同，但執行環境轉移到你自己的伺服器或電腦。任務過程中產生的所有資料都不會離開你的環境，適合有資料隱私或合規要求的使用場景。相較雲端版，需要自行設定環境，技術門檻明顯較高。</div>
+        <div class="use-cases">
+          <span class="use-case">同雲端版能力，但資料完全在本機</span>
+          <span class="use-case">有資料合規或隱私要求的任務場景</span>
+          <span class="use-case">企業內部自主部署</span>
+        </div>
+        <div class="card-stats">
+          <div><div class="stat-label">執行環境</div><div class="stat-val">你的機器</div></div>
+          <div><div class="stat-label">資料主權</div><div class="stat-val">✓ 完全本機</div></div>
+          <div><div class="stat-label">門檻</div><div class="stat-val">需自行設定</div></div>
+          <div><div class="stat-label">定價</div><div class="stat-val">依方案</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="--ca:#e05555;">
+        <div class="card-top">
+          <div class="card-logo" style="background:#e05555; font-size:18px;">🦞</div>
+          <div class="card-badges"><span class="badge oss">Open Source</span><span class="badge warn">⚠️ 安全風險高</span></div>
+        </div>
+        <div class="card-name">OpenClaw</div>
+        <div class="card-domain">openclaw.ai · github.com/openclaw</div>
+        <div class="card-tagline">裝在你電腦上、從手機下指令的開源 AI 員工</div>
+        <div class="card-desc">Peter Steinberger 2025 年 11 月推出（前身 Clawdbot / Moltbot），OpenAI 隨後收購創辦人。裝在你的電腦 / Mac Mini / Raspberry Pi 上，透過 WhatsApp、Telegram、Discord 等 20+ 訊息 app 接受指令，可讀寫檔案、跑 terminal、控制瀏覽器、管理 email 和行事曆。支援 Claude、GPT、本地模型。GitHub 星數爆衝超過 15 萬，約 30–40 萬用戶。Jensen Huang 稱它「可能是有史以來最重要的軟體發布」。⚠️ Cisco 稱之為 "security nightmare"，prompt injection 風險極高，不建議非技術用戶在生產環境使用。</div>
+        <div class="use-cases">
+          <span class="use-case">Email 分類、行事曆管理、日常自動化</span>
+          <span class="use-case">從手機傳訊息控制電腦在後台執行任務</span>
+          <span class="use-case">技術用戶自建個人 AI 助理工作站</span>
+        </div>
+        <div class="card-stats">
+          <div><div class="stat-label">GitHub ⭐</div><div class="stat-val">150,000+</div></div>
+          <div><div class="stat-label">用戶數</div><div class="stat-val">30–40 萬</div></div>
+          <div><div class="stat-label">資料主權</div><div class="stat-val">✓ 完全本機</div></div>
+          <div><div class="stat-label">定價</div><div class="stat-val">開源免費</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ ORCHESTRATION ══════════════ -->
+<section class="section-wrap">
+  <div class="section-head">
+    <div class="section-label"><span class="cat-dot" style="background:var(--c-orch)"></span>Agent 編排框架</div>
+    <div class="section-title" style="color:var(--c-orch)">管理多個 Agent 的組織架構層</div>
+    <p class="section-intro">一個 Agent 幫你執行任務，已經很強大了。但現實中複雜的業務場景，往往需要多個專職 Agent 分工協作：一個負責研究、一個負責寫程式、一個負責審查、一個負責對外溝通……<strong>這就需要一個「管理層」來協調它們——定義誰負責什麼、它們怎麼溝通、預算怎麼分配、出了問題誰負責。</strong></p>
+    <p class="section-intro">這一層工具的核心不是執行任務，而是<strong>定義組織架構</strong>。如果說 OpenClaw 是一個 AI 員工，Paperclip 就是讓你建立和管理整個 AI 公司的框架。</p>
+    <div class="section-callout">
+      💡 這是目前生態裡最早期、最前沿的一層。使用者需要對 Agent 架構有一定理解，不適合作為 Vibe Coding 的入門點。但如果你已經在思考「如何讓多個 AI 系統協作完成複雜業務流程」，這是你需要關注的方向。
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="card" style="--ca:var(--c-orch);">
+      <div class="card-top">
+        <div class="card-logo" style="background:var(--c-orch);">Pc</div>
+        <div class="card-badges"><span class="badge new">編排框架</span><span class="badge oss">開源</span></div>
+      </div>
+      <div class="card-name">Paperclip</div>
+      <div class="card-domain">paperclip.ing · github.com/paperclipai</div>
+      <div class="card-tagline">如果 OpenClaw 是員工，Paperclip 就是整個公司</div>
+      <div class="card-desc">目標是打造「真正的無人公司」——不是單一 AI Agent 幫你執行任務，而是一套完整的企業架構：組織結構圖、預算控制、治理機制、目標對齊、任務所有權。支援多種 AI Agent（OpenClaw、Claude Code、Codex、Cursor 等）在同一個框架下協作，甚至可以在一個部署中同時運行多個完全獨立的「AI 公司」。</div>
+      <div class="use-cases">
+        <span class="use-case">讓多個 AI Agent 分工協作完成複雜業務流程</span>
+        <span class="use-case">為 AI 組織設定目標對齊、預算和治理規則</span>
+        <span class="use-case">同時運行多個獨立 AI 組織的實驗性架構</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">定位</div><div class="stat-val">AI 公司架構層</div></div>
+        <div><div class="stat-label">相容 Agent</div><div class="stat-val">OpenClaw、Claude 等</div></div>
+        <div><div class="stat-label">開源</div><div class="stat-val">✓</div></div>
+        <div><div class="stat-label">成熟度</div><div class="stat-val">早期 / 實驗性</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ DEV TOOLS ══════════════ -->
+<section class="section-wrap">
+  <div class="section-head">
+    <div class="section-label"><span class="cat-dot" style="background:var(--c-dev)"></span>Dev Tools</div>
+    <div class="section-title" style="color:var(--c-dev)">給本來就在寫 code 的人——加速器，不是替代品</div>
+    <p class="section-intro">這條線和主線的本質差別：<strong>你還是主導者，AI 是你的共同作者。</strong>你需要有程式背景才能有效使用這些工具，因為你要能判斷 AI 生成的 code 是否正確、架構是否合理、什麼時候該推翻重來。</p>
+    <p class="section-intro">那為什麼它們會出現在 Vibe Coding 的語境裡？因為它們代表了一個現象：<strong>有程式背景的人，現在也越來越多在「用說的」來寫 code</strong>——用自然語言描述要做什麼，讓 AI 執行跨多個檔案的複雜改動，自己 review 結果。這和傳統的「AI 補全」體驗已經完全不一樣了。</p>
+    <div class="section-callout">
+      💡 <strong>多情境提醒：</strong>Claude 和 ChatGPT 在這裡再次出現，但角色完全不同。對話框裡的 Claude 是 Foundation Model；Claude Code 是有工具鏈整合、可以直接操作你 repo 的 agent 工具。同一個底層模型，不同的使用深度和方式——這也是理解整個 Vibe Coding 生態最重要的一個概念。
+    </div>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card" style="--ca:var(--c-dev);">
+      <div class="card-top">
+        <div class="card-logo" style="background:var(--c-dev);">Cu</div>
+        <div class="card-badges"><span class="badge hot">Fortune 500 首選</span></div>
+      </div>
+      <div class="card-name">Cursor</div>
+      <div class="card-domain">cursor.com</div>
+      <div class="card-tagline">目前最像專業工程師日常主力武器的 AI IDE</div>
+      <div class="card-desc">AI coding IDE 賽道的頭部代表。VS Code fork，深度整合大語言模型，強調完整 codebase 理解、Agent workflow、多模型切換。Composer（Cmd+I）可描述跨多檔案的複雜改動後一次執行。「超過半數 Fortune 500 使用」，Salesforce 超過 90% 開發者採用。母公司 Anysphere 估值 $9.9B。與 App Builder 的根本差別：你還是在你自己的 repo 和 infra 上工作，一切都是你的責任。</div>
+      <div class="use-cases">
+        <span class="use-case">大型 codebase 多檔案重構與深度理解</span>
+        <span class="use-case">複雜功能開發與 Agent workflow</span>
+        <span class="use-case">App Builder 原型驗證後升級生產環境</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">估值</div><div class="stat-val">$9.9B</div></div>
+        <div><div class="stat-label">企業採用</div><div class="stat-val">50%+ Fortune 500</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $20/mo</div></div>
+        <div><div class="stat-label">門檻</div><div class="stat-val">需有程式背景</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="--ca:#f7a26a;">
+      <div class="card-top">
+        <div class="card-logo" style="background:#f7a26a;">Cc</div>
+        <div class="card-badges"><span class="badge dev">Anthropic</span><span class="badge">Terminal / IDE</span></div>
+      </div>
+      <div class="card-name">Claude Code</div>
+      <div class="card-domain">anthropic.com/claude-code</div>
+      <div class="card-tagline">最像資深工程師搭檔的 AI，深入 terminal 和 IDE</div>
+      <div class="card-desc">Claude Code 把 Claude 的能力正式整合進開發工作流：能讀 codebase、編輯檔案、執行 terminal 指令、串 IDE 與工具鏈，可在 terminal、IDE、desktop、browser 中使用。和對話框裡的 Claude 底層相同，但操作深度完全不同——它可以直接動你的 repo，而不只是給你建議。很多開發者把它定位為「最像資深工程師搭檔的 AI」。</div>
+      <div class="use-cases">
+        <span class="use-case">大型 codebase 深度理解與多步驟重構</span>
+        <span class="use-case">複雜規格實作、多檔案任務處理</span>
+        <span class="use-case">Terminal / IDE 工具鏈深度整合</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">強項</div><div class="stat-val">長上下文理解</div></div>
+        <div><div class="stat-label">使用介面</div><div class="stat-val">Terminal / IDE</div></div>
+        <div><div class="stat-label">多情境</div><div class="stat-val">✓ 同底層見 Claude</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">API-based</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="--ca:#34d399;">
+      <div class="card-top">
+        <div class="card-logo" style="background:#34d399;">Cx</div>
+        <div class="card-badges"><span class="badge dev">OpenAI</span><span class="badge new">Agentic</span></div>
+      </div>
+      <div class="card-name">ChatGPT / Codex</div>
+      <div class="card-domain">chatgpt.com · openai.com/codex</div>
+      <div class="card-tagline">最通用的 coding agent 平台，從對話到多代理工作流</div>
+      <div class="card-desc">現在的 Codex 是 OpenAI 主打的 agentic coding 產品——強調多代理工作流、worktrees、雲端環境、PR 自動化與長任務處理。Canvas 讓你在對話中直接修改 code；進階用戶可以把它配置成能自主處理 PR、跑測試、處理 issues 的 AI 工程同事。和對話框裡的 ChatGPT 底層相同，但使用深度截然不同。</div>
+      <div class="use-cases">
+        <span class="use-case">Canvas 對話式修改 code、快速迭代</span>
+        <span class="use-case">多代理工作流 + PR / issue 自動化</span>
+        <span class="use-case">需要模型靈活切換的複雜工程任務</span>
+      </div>
+      <div class="card-stats">
+        <div><div class="stat-label">工作流</div><div class="stat-val">Canvas / Codex</div></div>
+        <div><div class="stat-label">強項</div><div class="stat-val">多代理 · 長任務</div></div>
+        <div><div class="stat-label">多情境</div><div class="stat-val">✓ 同底層見 ChatGPT</div></div>
+        <div><div class="stat-label">定價</div><div class="stat-val">Free / $20/mo+</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ TABLE ══════════════ -->
+<section class="section-wrap">
+  <div class="section-label"><span class="cat-dot" style="background:var(--text-dim)"></span>Quick Comparison — 全部工具一覽</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>工具</th>
+          <th>分類</th>
+          <th>有部署環境</th>
+          <th>無需寫 code</th>
+          <th>AI 自主程度</th>
+          <th>資料主權</th>
+          <th>開源</th>
+          <th>定價起點</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:var(--c-found)"></div><span class="tool-name-t">ChatGPT</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-found);border-color:var(--c-found)">Foundation</span></td>
+          <td><span class="no">✗</span></td><td><span class="yes">✓</span></td>
+          <td class="mono">你問它答</td><td class="mono">OpenAI 雲端</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $20</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#f7a26a"></div><span class="tool-name-t">Claude</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-found);border-color:var(--c-found)">Foundation</span></td>
+          <td><span class="no">✗</span></td><td><span class="yes">✓</span></td>
+          <td class="mono">你問它答</td><td class="mono">Anthropic 雲端</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $20</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#4285f4"></div><span class="tool-name-t">Gemini / Canvas</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-found);border-color:var(--c-found)">Foundation</span></td>
+          <td><span class="part">△ Canvas 預覽</span></td><td><span class="yes">✓</span></td>
+          <td class="mono">你問它答</td><td class="mono">Google 雲端</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / Adv.</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:var(--c-builder)"></div><span class="tool-name-t">Lovable</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-builder);border-color:var(--c-builder)">App Builder</span></td>
+          <td><span class="yes">✓ Supabase</span></td><td><span class="yes">✓</span></td>
+          <td class="mono">流程自動化</td><td class="mono">平台雲端</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $25</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#6ac8f7"></div><span class="tool-name-t">v0</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-builder);border-color:var(--c-builder)">App Builder</span></td>
+          <td><span class="yes">✓ Vercel</span></td><td><span class="part">△</span></td>
+          <td class="mono">流程自動化</td><td class="mono">平台雲端</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $20</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#6af7b8"></div><span class="tool-name-t">Base44</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-builder);border-color:var(--c-builder)">App Builder</span></td>
+          <td><span class="yes">✓ 全自動</span></td><td><span class="yes">✓</span></td>
+          <td class="mono">流程自動化</td><td class="mono">平台雲端</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $20</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#c46af7"></div><span class="tool-name-t">Replit</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-builder);border-color:var(--c-builder)">App Builder</span></td>
+          <td><span class="yes">✓ 內建 🔒</span></td><td><span class="part">△</span></td>
+          <td class="mono">流程自動化</td><td class="mono">平台鎖定</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $25</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:var(--c-agent-cloud)"></div><span class="tool-name-t">Manus（雲端）</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-agent-cloud);border-color:var(--c-agent-cloud)">Agent 雲端</span></td>
+          <td><span class="part">△ sandbox</span></td><td><span class="yes">✓</span></td>
+          <td class="mono">全自主執行</td><td class="mono">廠商雲端</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $39</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:var(--c-agent-local)"></div><span class="tool-name-t">Manus（本機）</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-agent-local);border-color:var(--c-agent-local)">Agent 本機</span></td>
+          <td><span class="part">△ sandbox</span></td><td><span class="part">△</span></td>
+          <td class="mono">全自主執行</td><td class="mono">✓ 完全本機</td><td><span class="no">✗</span></td>
+          <td class="mono">依方案</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#e05555"></div><span class="tool-name-t">OpenClaw 🦞</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-agent-local);border-color:var(--c-agent-local)">Agent 本機</span></td>
+          <td><span class="no">✗</span></td><td><span class="part">△</span></td>
+          <td class="mono">全自主執行</td><td class="mono">✓ 完全本機</td><td><span class="yes">✓ OSS</span></td>
+          <td class="mono">開源免費</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:var(--c-orch)"></div><span class="tool-name-t">Paperclip</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-orch);border-color:var(--c-orch)">Orchestration</span></td>
+          <td><span class="no">✗</span></td><td><span class="part">△</span></td>
+          <td class="mono">多 Agent 協作</td><td class="mono">依部署方式</td><td><span class="yes">✓ OSS</span></td>
+          <td class="mono">開源免費</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:var(--c-dev)"></div><span class="tool-name-t">Cursor</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-dev);border-color:var(--c-dev)">Dev Tools</span></td>
+          <td><span class="no">✗</span></td><td><span class="no">✗ 需懂 code</span></td>
+          <td class="mono">AI 輔助寫 code</td><td class="mono">你的 repo</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $20</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#f7a26a"></div><span class="tool-name-t">Claude Code</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-dev);border-color:var(--c-dev)">Dev Tools</span></td>
+          <td><span class="no">✗</span></td><td><span class="no">✗ 需懂 code</span></td>
+          <td class="mono">AI 輔助寫 code</td><td class="mono">你的 repo</td><td><span class="no">✗</span></td>
+          <td class="mono">API-based</td>
+        </tr>
+        <tr>
+          <td><div class="tool-cell"><div class="tool-dot" style="background:#34d399"></div><span class="tool-name-t">ChatGPT / Codex</span></div></td>
+          <td><span class="cat-pill" style="color:var(--c-dev);border-color:var(--c-dev)">Dev Tools</span></td>
+          <td><span class="no">✗</span></td><td><span class="part">△ 視用法</span></td>
+          <td class="mono">AI 輔助 + Agent</td><td class="mono">你的 repo</td><td><span class="no">✗</span></td>
+          <td class="mono">Free / $20</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════ WHO SHOULD USE WHAT ══════════════ -->
+<section class="section-wrap">
+  <div class="section-label"><span class="cat-dot" style="background:var(--text-dim)"></span>Who Should Use What</div>
+  <div class="verdict-grid">
+    <div class="verdict-card">
+      <div class="verdict-emoji">🚀</div>
+      <div>
+        <div class="verdict-title">非技術創辦人，想快速驗證 MVP</div>
+        <div class="verdict-body">從 <strong>ChatGPT / Claude</strong> 開始拆解需求，然後用 <strong>Lovable</strong> 直接建出來。最快路徑。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">🎨</div>
+      <div>
+        <div class="verdict-title">要做高品質 React / Next.js 前端</div>
+        <div class="verdict-body"><strong>v0</strong>。產出最乾淨，直推 Vercel，UI 品味最高。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">🏗️</div>
+      <div>
+        <div class="verdict-title">需要完整後端 + 零設定</div>
+        <div class="verdict-body"><strong>Base44</strong>。Auth、DB、API 一條龍，zero-shot 最完整。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">📚</div>
+      <div>
+        <div class="verdict-title">初學者 / 學生入門</div>
+        <div class="verdict-body"><strong>Replit</strong>。50+ 語言、社群最豐富，瀏覽器寫 code 並直接部署。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">🕹️</div>
+      <div>
+        <div class="verdict-title">想讓 AI 自己去完成任務，不想全程盯著</div>
+        <div class="verdict-body"><strong>Manus（雲端）</strong>。研究、分析、多步驟任務交給它，你去做別的事。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">🔐</div>
+      <div>
+        <div class="verdict-title">想要 Agent 能力，但資料不能離開本機</div>
+        <div class="verdict-body"><strong>Manus（本機）</strong> 穩妥；<strong>OpenClaw</strong> 開源但安全風險高，需要技術能力評估後使用。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">💼</div>
+      <div>
+        <div class="verdict-title">專業開發者想大幅提速</div>
+        <div class="verdict-body"><strong>Cursor</strong> 是日常主力；大型 codebase 重構首選 <strong>Claude Code</strong>。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">🏢</div>
+      <div>
+        <div class="verdict-title">想讓多個 AI Agent 分工協作</div>
+        <div class="verdict-body"><strong>Paperclip</strong>。最前沿但最早期，適合已理解 Agent 架構的人。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">🔄</div>
+      <div>
+        <div class="verdict-title">最多人在用的黃金工作流</div>
+        <div class="verdict-body"><strong>Lovable</strong> 快速原型驗證 → <strong>Cursor</strong> 重構上生產。兩者互補不競爭。</div>
+      </div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-emoji">⚠️</div>
+      <div>
+        <div class="verdict-title">真實警告，讀完再決定</div>
+        <div class="verdict-body">研究顯示 AI 工具讓有經驗的開發者慢了 <strong>19%</strong>。感覺快 ≠ 真的快。你還是要能看懂 AI 生出來的東西。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-note">// Compiled March 2026 · Inspired by Paperclip format</span>
+  <span class="footer-note">claude.ai · chatgpt.com · gemini.google · lovable.dev · v0.dev · base44.com · replit.com · manus.im · openclaw.ai · paperclip.ing · cursor.com · anthropic.com/claude-code</span>
+</footer>
+
+</div>
+</body>
+</html>
